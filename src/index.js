@@ -7,9 +7,16 @@ import { Provider } from 'react-redux';
 import * as serviceWorker from './serviceWorker';
 import { MoralisProvider } from "react-moralis";
 import { appId, serverUrl } from './config';
+import { ChakraProvider, ColorModeScript, extendTheme } from "@chakra-ui/react";
 
 import { init as initWallet } from './features/provider/wallet';
 
+const theme = extendTheme({
+  config: {
+    initialColorMode: "dark",
+    useSystemColorMode: false,
+  }
+})
 
 async function init() {
   try {
@@ -17,23 +24,28 @@ async function init() {
   } catch (error) {
     console.error("Failed to initialize App: ", error);
   }
-  
+
   ReactDOM.render(
-  <MoralisProvider appId={appId} serverUrl={serverUrl}>
-    <React.StrictMode>
-      <Provider store={store}>
-        <App />
-      </Provider>
-    </React.StrictMode>
-  </MoralisProvider>,
+    <>
+      <ColorModeScript initialColorMode={theme.config.initialColorMode} />
+      <MoralisProvider appId={appId} serverUrl={serverUrl}>
+        <React.StrictMode>
+          <Provider store={store}>
+            <ChakraProvider theme={theme}>
+              <App />
+            </ChakraProvider>
+          </Provider>
+        </React.StrictMode>
+      </MoralisProvider>
+    </>,
 
     document.getElementById('root')
-    );
+  );
 
-    // If you want your app to work offline and load faster, you can change
-    // unregister() to register() below. Note this comes with some pitfalls.
-    // Learn more about service workers: https://bit.ly/CRA-PWA
-    serviceWorker.unregister();
+  // If you want your app to work offline and load faster, you can change
+  // unregister() to register() below. Note this comes with some pitfalls.
+  // Learn more about service workers: https://bit.ly/CRA-PWA
+  serviceWorker.unregister();
 
 }
 

@@ -32,12 +32,14 @@ async function getBalances(accounts) {
     return {
       network: n.network,
       assets: result.map((tokenBalance) => {
+        console.log("geri tokenBalance", tokenBalance)
         return {
           name: tokenBalance.get('name'),
           symbol: tokenBalance.get('symbol'),
           token_address: tokenBalance.get('token_address'),
           balance: tokenBalance.get('balance'),
           address: tokenBalance.get('address'),
+          decimals: tokenBalance.get('decimals'),
         }
       })
     };
