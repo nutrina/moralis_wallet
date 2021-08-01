@@ -2,55 +2,47 @@ import React, { useEffect } from 'react';
 import { useDispatch, useSelector } from 'react-redux';
 import { useMoralis } from "react-moralis";
 import { ethers } from "ethers";
-import { Heading, UnorderedList, ListItem, Text, Box } from "@chakra-ui/react"
+import { Box, Spinner, Text, Spacer, Flex, Progress } from "@chakra-ui/react"
 import {
   Table,
   Thead,
   Tbody,
-  Tfoot,
   Tr,
   Th,
-  Td,
-  TableCaption,
+  Td
 } from "@chakra-ui/react"
 
 import { getBalancesAsync, selectBalance } from './walletSlice';
 
 
 export function Wallet() {
-  const { user } = useMoralis();
+  const { isAuthenticated, user } = useMoralis();
 
   useEffect(() => {
-    dispatch(getBalancesAsync({ accounts: user.get('accounts') }));
-  }, [user])
+    console.log("geri user", user);
+    console.log("geri isAuthenticated", isAuthenticated);
+    if (isAuthenticated && user) {
+      dispatch(getBalancesAsync({ accounts: user.get('accounts') }));
+    }
+  }, [isAuthenticated])
 
   const dispatch = useDispatch();
   const balance = useSelector(selectBalance);
-  function handleLoadBalance() {
-    dispatch(getBalancesAsync({ accounts: user.get('accounts') }));
-  }
+  console.log("geri wallet balance", balance);
 
-  console.log("geri balance: ", balance);
-  let balancesUi = null;
-
-  balancesUi = balance.value.map((balance, idx) => {
-    if (balance.status === "fulfilled") {
+  const balancesUi = balance.value.map((chainBalance, idx) => {
+    if (chainBalance.status === "fulfilled") {
       let assets = null;
-      if (balance.value.assets.length > 0) {
-        assets = balance.value.assets.map((asset, aidx) => {
+      if (chainBalance.value.assets.length > 0) {
+        const rows = chainBalance.value.assets.map((asset, aidx) => {
           return <Tr key={aidx}>
             <Td>{asset.symbol}</Td>
             <Td>{asset.name}</Td>
             <Td isNumeric>{ethers.utils.formatUnits(asset.balance, asset.decimals)}</Td>
           </Tr>
-        })
-      } else {
-        assets = <div>No assets</div>;
-      }
+        });
 
-      return <Box key={idx} m={5} boxShadow="lg" p="6" rounded="md">
-        <Heading fontSize="2xl">{balance.value.network}</Heading>
-        <Table variant="simple" size="sm" borderRadius={5}>
+        assets = <Table variant="simple" size="sm" borderRadius={5}>
           <Thead>
             <Tr>
               <Th>Symbol</Th>
@@ -59,19 +51,30 @@ export function Wallet() {
             </Tr>
           </Thead>
           <Tbody>
-            {assets}
+            {rows}
           </Tbody>
         </Table>
+      } else {
+        assets = <Text>You do not have any assets yet.</Text>
+      }
+
+      const progressIndicator = (balance.status === "loading") ? <Spinner /> : null;
+      return <Box key={idx} boxShadow="base" p="6" rounded="md">
+        <Flex>
+          <Text fontSize="2xl">{chainBalance.value.network} {}</Text>
+          <Spacer />
+          {progressIndicator}
+        </Flex>
+          {assets}
       </Box>;
     }
   })
 
-  const progressIndicator = (balance.status === "loading") ? <div>Loading ...</div> : null;
-  const error = (balance.status === "failed") ? <div>Failed to load balances</div> : null;
+  const progressIndicator = (balance.status === "loading" && balancesUi.length === 0 ) ? <Flex justify="center"><Progress w="100%" size="sm" isIndeterminate/></Flex> : null;
+  const error = (balance.status === "failed") ? <Text>Failed to load balances</Text> : null;
 
   return (
     <div>
-      <button onClick={handleLoadBalance}>Refresh Balance</button>
       {progressIndicator}
       {error}
       {balancesUi}

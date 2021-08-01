@@ -1,51 +1,66 @@
 import React from 'react';
 import { useMoralis } from "react-moralis";
-import { Heading, UnorderedList, ListItem, Text, Box, Image, Flex, Button } from "@chakra-ui/react";
-import { Counter } from './features/counter/Counter';
+import { Heading, UnorderedList, Progress, Text, Box, Image, Flex, Button, useColorModeValue, Spinner } from "@chakra-ui/react";
 import { Wallet } from './features/wallet/Wallet';
-import Header from './Header';
+import Header from './features/header/Header';
 
 
 
 function App() {
-  const { Moralis, isAuthenticated, user, logout, isAuthenticating, isInitialized, authenticate } = useMoralis();
+  const { isAuthenticated, user, logout, isAuthenticating, isInitialized, authenticate } = useMoralis();
+  let content = null;
+  // const bg = useColorModeValue("gray.50");
 
   const handleLoginWithMetamask = () => {
     authenticate();
   }
 
   if (!isInitialized || isAuthenticating) {
-    return <div> Please wait, we are authentication you ... </div>
+    content = <Box p="2">
+      <Text align="center"> Please wait, we are authentication you ... </Text>
+      <Flex justify="center"><Spinner /></Flex>
+    </Box>
+
   }
+  else {
+    let authenticationButton = null;
+    let userInfo = null;
 
-  let authenticationButton = null;
-  let userInfo = null;
-
-  if (!isAuthenticated) {
-    authenticationButton = <button onClick={handleLoginWithMetamask}>Login with Metamask</button>
-  } else {
-    userInfo = <div>
-      You are logged in as: {user.get('username')}
-    </div>
-  }
-
-  console.log("User accounts: ", user.get("accounts"))
-  return (
-    <>
-      <Header />
-      <Box>
+    if (!isAuthenticated) {
+      authenticationButton =
         <Flex align="center"
           p="2"
           justify="center"
           wrap="wrap">
-          <Text fontSize="5xl" >123.46 ETH</Text>
+          <Button size="lg" onClick={handleLoginWithMetamask}>Login with Metamask</Button>
         </Flex>
-        
-        {authenticationButton}
-        {userInfo}
-        Here are your balances:
-        <Wallet />
-      </Box>
+    } else {
+      userInfo = <div>
+        You are logged in as: {user.get('username')}
+      </div>
+    }
+
+    const totalBalance = isAuthenticated ? <Flex align="center"
+      p="2"
+      justify="center"
+      wrap="wrap">
+      <Text fontSize="5xl" >123.46 ETH</Text>
+    </Flex> : null;
+
+    content = <Box p="2">
+      {totalBalance}
+      {authenticationButton}
+      {userInfo}
+      <Wallet />
+    </Box>
+  }
+
+
+
+  return (
+    <>
+      <Header />
+      {content}
     </>
   );
 }

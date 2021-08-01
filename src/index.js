@@ -6,7 +6,6 @@ import { store } from './app/store';
 import { Provider } from 'react-redux';
 import * as serviceWorker from './serviceWorker';
 import { MoralisProvider } from "react-moralis";
-import { appId, serverUrl } from './config';
 import { ChakraProvider, ColorModeScript, extendTheme } from "@chakra-ui/react";
 
 import { init as initWallet } from './features/provider/wallet';
@@ -28,7 +27,7 @@ async function init() {
   ReactDOM.render(
     <>
       <ColorModeScript initialColorMode={theme.config.initialColorMode} />
-      <MoralisProvider appId={appId} serverUrl={serverUrl}>
+      <MoralisProvider appId={window.MORALIS_APP_ID} serverUrl={window.MORALIS_SERVER_URL}>
         <React.StrictMode>
           <Provider store={store}>
             <ChakraProvider theme={theme}>
