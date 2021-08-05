@@ -8,7 +8,7 @@ import * as serviceWorker from './serviceWorker';
 import { MoralisProvider } from "react-moralis";
 import { ChakraProvider, ColorModeScript, extendTheme } from "@chakra-ui/react";
 
-import { init as initWallet } from './features/provider/wallet';
+// import { init as initWallet } from './features/provider/wallet';
 
 const theme = extendTheme({
   config: {
@@ -18,11 +18,11 @@ const theme = extendTheme({
 })
 
 async function init() {
-  try {
-    await initWallet();
-  } catch (error) {
-    console.error("Failed to initialize App: ", error);
-  }
+  // try {
+  //   await initWallet();
+  // } catch (error) {
+  //   console.error("Failed to initialize App: ", error);
+  // }
 
   ReactDOM.render(
     <>

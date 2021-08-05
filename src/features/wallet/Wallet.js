@@ -2,7 +2,7 @@ import React, { useEffect } from 'react';
 import { useDispatch, useSelector } from 'react-redux';
 import { useMoralis } from "react-moralis";
 import { ethers } from "ethers";
-import { Box, Spinner, Text, Spacer, Flex, Progress } from "@chakra-ui/react"
+import { Box, Spinner, Text, Spacer, Flex, Progress, useColorModeValue } from "@chakra-ui/react"
 import {
   Table,
   Thead,
@@ -17,6 +17,7 @@ import { getBalancesAsync, selectBalance, selectNetworks, selectPrices } from '.
 
 export function Wallet() {
   const { isAuthenticated, user } = useMoralis();
+  const backgroundColor = useColorModeValue("rgb(255,255,255)", "rgba(255,255,255,0.01)");
 
   useEffect(() => {
     if (isAuthenticated && user) {
@@ -73,7 +74,16 @@ export function Wallet() {
 
     progressIndicator = (balance.status === "loading") ? <Spinner /> : null;
 
-    return <Box key={idx} boxShadow="md" p="6" marginTop="10" rounded="md" border="1px" borderColor="gray.200">
+
+    return <Box key={idx}
+      boxShadow="md"
+      p="6"
+      marginTop="10"
+      rounded="md"
+      border="1px"
+      borderColor="gray.200"
+      backgroundColor={backgroundColor}
+    >
       <Flex>
         <Text fontSize="2xl">{network.displayName} { }</Text>
         <Spacer />
