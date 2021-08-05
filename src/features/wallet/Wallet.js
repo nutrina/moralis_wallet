@@ -12,15 +12,13 @@ import {
   Td
 } from "@chakra-ui/react"
 
-import { getBalancesAsync, selectBalance } from './walletSlice';
+import { getBalancesAsync, selectBalance, selectNetworks, selectPrices } from './walletSlice';
 
 
 export function Wallet() {
   const { isAuthenticated, user } = useMoralis();
 
   useEffect(() => {
-    console.log("geri user", user);
-    console.log("geri isAuthenticated", isAuthenticated);
     if (isAuthenticated && user) {
       dispatch(getBalancesAsync({ accounts: user.get('accounts') }));
     }
@@ -28,17 +26,29 @@ export function Wallet() {
 
   const dispatch = useDispatch();
   const balance = useSelector(selectBalance);
-  console.log("geri wallet balance", balance);
+  const networks = useSelector(selectNetworks);
+  const prices = useSelector(selectPrices);
+  let totalUSD = 0;
 
-  const balancesUi = balance.value.map((chainBalance, idx) => {
-    if (chainBalance.status === "fulfilled") {
-      let assets = null;
+  const balancesUi = networks.map((network, idx) => {
+    const chainBalance = balance.value[network.network];
+    let assets = null;
+    let progressIndicator = null;
+    if (chainBalance && chainBalance.status === "fulfilled") {
       if (chainBalance.value.assets.length > 0) {
         const rows = chainBalance.value.assets.map((asset, aidx) => {
+          const price = prices[network.network][asset.token_address];
+          const amount = ethers.utils.formatUnits(asset.balance, asset.decimals);
+          const usdPrice = price ? price.usdPrice : 0;
+          const amountNumber = Number.parseFloat(amount);
+          const value = amountNumber * usdPrice;
+          totalUSD += value;
           return <Tr key={aidx}>
             <Td>{asset.symbol}</Td>
             <Td>{asset.name}</Td>
-            <Td isNumeric>{ethers.utils.formatUnits(asset.balance, asset.decimals)}</Td>
+            <Td isNumeric>{amount}</Td>
+            <Td isNumeric>{price ? <Text whiteSpace="nowrap">{"$ " + usdPrice}</Text> : "?"}</Td>
+            <Td isNumeric>{price ? <Text whiteSpace="nowrap">{"$ " + value}</Text> : "?"}</Td>
           </Tr>
         });
 
@@ -48,6 +58,8 @@ export function Wallet() {
               <Th>Symbol</Th>
               <Th>Name</Th>
               <Th isNumeric>Amount</Th>
+              <Th isNumeric>Price</Th>
+              <Th isNumeric>Value</Th>
             </Tr>
           </Thead>
           <Tbody>
@@ -57,24 +69,31 @@ export function Wallet() {
       } else {
         assets = <Text>You do not have any assets yet.</Text>
       }
-
-      const progressIndicator = (balance.status === "loading") ? <Spinner /> : null;
-      return <Box key={idx} boxShadow="base" p="6" rounded="md">
-        <Flex>
-          <Text fontSize="2xl">{chainBalance.value.network} {}</Text>
-          <Spacer />
-          {progressIndicator}
-        </Flex>
-          {assets}
-      </Box>;
     }
-  })
 
-  const progressIndicator = (balance.status === "loading" && balancesUi.length === 0 ) ? <Flex justify="center"><Progress w="100%" size="sm" isIndeterminate/></Flex> : null;
+    progressIndicator = (balance.status === "loading") ? <Spinner /> : null;
+
+    return <Box key={idx} boxShadow="md" p="6" marginTop="10" rounded="md" border="1px" borderColor="gray.200">
+      <Flex>
+        <Text fontSize="2xl">{network.displayName} { }</Text>
+        <Spacer />
+        {progressIndicator}
+      </Flex>
+      {assets}
+    </Box>;
+  });
+
+  const progressIndicator = (balance.status === "loading" && balancesUi.length === 0) ? <Flex justify="center"><Progress w="100%" size="sm" isIndeterminate /></Flex> : null;
   const error = (balance.status === "failed") ? <Text>Failed to load balances</Text> : null;
 
   return (
     <div>
+      <Flex align="center"
+        p="2"
+        justify="center"
+        wrap="wrap">
+        <Text fontSize="5xl" >$ {totalUSD} </Text>
+      </Flex>
       {progressIndicator}
       {error}
       {balancesUi}

@@ -2,23 +2,24 @@
 import { createAsyncThunk, createSlice } from '@reduxjs/toolkit';
 import Moralis from 'moralis';
 
+const networks = [
+  { network: "bsc", displayName: "Binance", collection: "BscTokenBalance" },
+  { network: "eth", displayName: "Ethereum", collection: "EthTokenBalance" },
+  { network: "polygon", displayName: "Polygon", collection: "PolygonTokenBalance" }
+];
+
 const initialState = {
+  networks: networks,
+  prices: networks.reduce((acc, n) => { acc[n.network] = {}; return acc; }, {}),
   balance: {
     status: '',
     message: '',
-    value: [
-    ],
+    value: {}
   },
 };
 
 
 async function getBalances(accounts) {
-  const networks = [
-    { network: "Binance", collection: "BscTokenBalance" },
-    { network: "Ethereum", collection: "EthTokenBalance" },
-    { network: "Polygon", collection: "PolygonTokenBalance" }
-  ];
-
   const queryResults = await Promise.allSettled(networks.map(async (n) => {
     const TokenBalance = Moralis.Object.extend(n.collection);
 
@@ -46,24 +47,65 @@ async function getBalances(accounts) {
 }
 
 
+const getPricesAsync = createAsyncThunk(
+  'wallet/getPrices',
+  async ({ address, chain, chain_name }) => {
+    const response = await fetch(`https://deep-index.moralis.io/api/token/ERC20/${address}/price?chain=${chain}&chain_name=${chain_name}`, {
+      headers: {
+        'X-API-Key': 'dcSyVkfIeLzaO18TUv1H1WjowK3O6IVrQ3XwxX933suZzNTgRsQ9Pzh5l5xL6zMq'
+      }
+    });
+
+    if (response.ok) {
+      const data = await response.json();
+      return {
+        address,
+        chain,
+        chain_name,
+        data,
+      }
+    } else {
+      return {
+        address,
+        chain,
+        chain_name,
+        data: null,
+      }
+    }
+  });
+
+
 export const getBalancesAsync = createAsyncThunk(
   'wallet/getBalances',
-  async ({ accounts }) => {
+  async ({ accounts }, thunkAPI) => {
     try {
       const balances = await getBalances(accounts);
+
+      balances.forEach((balance) => {
+        if (balance.status === "fulfilled") {
+          balance.value.assets.forEach((asset) => {
+            thunkAPI.dispatch(getPricesAsync({
+              chain: balance.value.network,
+              chain_name: 'mainnet',
+              address: asset.token_address
+            }))
+          })
+        }
+      });
+
       return balances;
     } catch (error) {
       console.error("Error while getting balances:", error);
     }
   }
 );
+
 export const walletSlice = createSlice({
   name: 'wallet',
   initialState,
   // The `reducers` field lets us define reducers and generate associated actions
   reducers: {
     reset: (state) => {
-      console.log("geri reset state", state)
       state.balance = {
         status: '',
         message: '',
@@ -78,16 +120,33 @@ export const walletSlice = createSlice({
     builder
       // getBalancesAsync
       .addCase(getBalancesAsync.pending, (state) => {
-        console.log("geri state", state)
         state.balance.status = 'loading';
       })
       .addCase(getBalancesAsync.fulfilled, (state, action) => {
         state.balance.status = 'done';
-        state.balance.value = action.payload || '';
+        state.balance.value = action.payload.reduce((acc, networkBalance) => {
+          acc[networkBalance.value.network] = networkBalance;
+          return acc;
+        }, {});
       })
       .addCase(getBalancesAsync.rejected, (state, action) => {
         state.balance.status = 'failed';
         state.balance.message = action.error.message;
+      })
+
+      // getPricesAsync
+      .addCase(getPricesAsync.pending, (state) => {
+        state.prices.status = 'loading';
+      })
+      .addCase(getPricesAsync.fulfilled, (state, action) => {
+        state.balance.status = 'done';
+        const network = action.payload.chain;
+        const address = action.payload.address;
+        state.prices[network][address] = action.payload.data;
+      })
+      .addCase(getPricesAsync.rejected, (state, action) => {
+        state.prices.status = 'failed';
+        state.prices.message = action.error.message;
       })
   },
 });
@@ -95,6 +154,14 @@ export const walletSlice = createSlice({
 
 export const selectBalance = (state) => {
   return state.wallet.balance;
+}
+
+export const selectNetworks = (state) => {
+  return state.wallet.networks;
+}
+
+export const selectPrices = (state) => {
+  return state.wallet.prices;
 }
 
 export const { reset } = walletSlice.actions;

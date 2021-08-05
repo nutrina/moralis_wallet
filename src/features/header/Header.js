@@ -37,7 +37,6 @@ const Header = (props) => {
   }
 
   function handleLogout() {
-    console.log("Logging out")
     logout();
     dispatch(resetWallet());
   }

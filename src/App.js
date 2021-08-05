@@ -1,6 +1,7 @@
 import React from 'react';
 import { useMoralis } from "react-moralis";
-import { Heading, UnorderedList, Progress, Text, Box, Image, Flex, Button, useColorModeValue, Spinner } from "@chakra-ui/react";
+import { Text, Box, Flex, Button, Spinner, Link } from "@chakra-ui/react";
+import { ExternalLinkIcon } from '@chakra-ui/icons';
 import { Wallet } from './features/wallet/Wallet';
 import Header from './features/header/Header';
 
@@ -9,23 +10,28 @@ import Header from './features/header/Header';
 function App() {
   const { isAuthenticated, user, logout, isAuthenticating, isInitialized, authenticate } = useMoralis();
   let content = null;
-  // const bg = useColorModeValue("gray.50");
 
   const handleLoginWithMetamask = () => {
     authenticate();
   }
 
-  if (!isInitialized || isAuthenticating) {
+  if (!window.ethereum) {
+    content = <Box p="2">
+      <Text fontSize="xl" align="center"> You need to use supported browser like 
+        <Link href="https://chrome.google.com/" isExternal> Chrome <ExternalLinkIcon mx="2px" /> </Link> 
+        or 
+        <Link href="https://brave.com/" isExternal> Brave <ExternalLinkIcon mx="2px" /> </Link> 
+        and install a Web3 Wallet like
+        <Link href="https://metamask.io" isExternal> Metamask <ExternalLinkIcon mx="2px" /> </Link>
+      </Text >
+    </Box >
+  } else if (!isInitialized || isAuthenticating) {
     content = <Box p="2">
       <Text align="center"> Please wait, we are authentication you ... </Text>
       <Flex justify="center"><Spinner /></Flex>
     </Box>
-
-  }
-  else {
+  } else {
     let authenticationButton = null;
-    let userInfo = null;
-
     if (!isAuthenticated) {
       authenticationButton =
         <Flex align="center"
@@ -34,28 +40,13 @@ function App() {
           wrap="wrap">
           <Button size="lg" onClick={handleLoginWithMetamask}>Login with Metamask</Button>
         </Flex>
-    } else {
-      userInfo = <div>
-        You are logged in as: {user.get('username')}
-      </div>
     }
 
-    const totalBalance = isAuthenticated ? <Flex align="center"
-      p="2"
-      justify="center"
-      wrap="wrap">
-      <Text fontSize="5xl" >123.46 ETH</Text>
-    </Flex> : null;
-
-    content = <Box p="2">
-      {totalBalance}
+    content = <Box p="4">
       {authenticationButton}
-      {userInfo}
       <Wallet />
     </Box>
   }
-
-
 
   return (
     <>
