@@ -17,17 +17,33 @@ const theme = extendTheme({
   }
 })
 
+
+
 async function init() {
-  // try {
-  //   await initWallet();
-  // } catch (error) {
-  //   console.error("Failed to initialize App: ", error);
-  // }
+  // appId={window.MORALIS_APP_ID} serverUrl={window.MORALIS_SERVER_URL}
+  let MORALIS_APP_ID = null;
+  let MORALIS_SERVER_URL = null;
+
+  if (!process.env.NODE_ENV || process.env.NODE_ENV === 'development') {
+    // Load secrets from env variables
+    MORALIS_APP_ID = window.MORALIS_APP_ID;
+    MORALIS_SERVER_URL = window.MORALIS_SERVER_URL;
+  } else {
+    // Load secrets dynamically
+    try {
+      const response = await fetch(window.MORALIS_CONFIG_URL);
+      const config_data = await response.json();
+      MORALIS_APP_ID = config_data.app_id;
+      MORALIS_SERVER_URL = config_data.server_url;
+    } catch (error) {
+      console.error("Failed to load app config: ", error);
+    }
+  }
 
   ReactDOM.render(
     <>
       <ColorModeScript initialColorMode={theme.config.initialColorMode} />
-      <MoralisProvider appId={window.MORALIS_APP_ID} serverUrl={window.MORALIS_SERVER_URL}>
+      <MoralisProvider appId={MORALIS_APP_ID} serverUrl={MORALIS_SERVER_URL}>
         <React.StrictMode>
           <Provider store={store}>
             <ChakraProvider theme={theme}>
