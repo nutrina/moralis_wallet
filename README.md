@@ -1,3 +1,10 @@
+This is a Wallet App build on the [Moralis Platform](https://moralis.io/).
+
+[Live Demo](https://moralis-wallet.iakobinyi.com/)
+
+------
+
+
 This project was bootstrapped with [Create React App](https://github.com/facebook/create-react-app), using the [Redux](https://redux.js.org/) and [Redux Toolkit](https://redux-toolkit.js.org/) template.
 
 ## Available Scripts

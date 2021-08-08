@@ -2,20 +2,22 @@ import React from "react";
 import { useDispatch, useSelector } from 'react-redux';
 import {
   Box,
-  Stack,
   Heading,
   Flex,
-  Text,
   Button,
   Image,
   useDisclosure,
   useColorMode,
-  Icon
+  Link,
+  Icon,
+  IconButton
 } from "@chakra-ui/react";
 import { HamburgerIcon, SunIcon, MoonIcon } from "@chakra-ui/icons";
 import { useMoralis } from "react-moralis";
 import { getBalancesAsync, reset as resetWallet, selectBalance } from '../wallet/walletSlice';
 import logo from '../../moralis/Powered-by-Moralis-Badge-Green.svg';
+
+import { FaGithub } from "react-icons/fa";
 
 // Note: This code could be better,
 // so I'd recommend you to understand how I solved and you could write yours better :)
@@ -58,6 +60,10 @@ const Header = (props) => {
     Refresh Balance
   </Button> : null;
 
+  const gitHub = <Link href="https://github.com/nutrina/moralis_wallet" isExternal variant="outline" m={4}>
+    <Icon as={FaGithub}></Icon>
+  </Link>;
+
 
   return (
     <Flex
@@ -84,8 +90,9 @@ const Header = (props) => {
         mt={{ base: 4, md: 0 }}
       >
         <ColorModeToggleIcon onClick={toggleColorMode} m={1} />
-        {logoutButton}
+        {gitHub}
         {refreshButton}
+        {logoutButton}
       </Box>
     </Flex>
   );
