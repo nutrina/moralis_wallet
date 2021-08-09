@@ -30,6 +30,7 @@ export function Wallet() {
   const networks = useSelector(selectNetworks);
   const prices = useSelector(selectPrices);
   let totalUSD = 0;
+  const accounts = !user ? [] : user.get('accounts').map((account) => '0x...' + account.slice(account.length - 4, account.length));
 
   const balancesUi = networks.map((network, idx) => {
     const chainBalance = balance.value[network.network];
@@ -53,7 +54,7 @@ export function Wallet() {
           </Tr>
         });
 
-        assets = <Table variant="simple" size="sm" borderRadius={5}>
+        assets = <Table variant="simple" size="sm">
           <Thead>
             <Tr>
               <Th>Symbol</Th>
@@ -74,7 +75,6 @@ export function Wallet() {
 
     progressIndicator = (balance.status === "loading") ? <Spinner /> : null;
 
-
     return <Box key={idx}
       boxShadow="md"
       p="6"
@@ -83,6 +83,7 @@ export function Wallet() {
       border="1px"
       borderColor="gray.200"
       backgroundColor={backgroundColor}
+      overflowX={"auto"}
     >
       <Flex>
         <Text fontSize="2xl">{network.displayName} { }</Text>
@@ -103,6 +104,12 @@ export function Wallet() {
         justify="center"
         wrap="wrap">
         <Text fontSize="5xl" >$ {totalUSD} </Text>
+      </Flex>
+      <Flex align="center"
+        p="2"
+        justify="center"
+        wrap="wrap">
+        Your accounts: {accounts}
       </Flex>
       {progressIndicator}
       {error}
