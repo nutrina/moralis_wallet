@@ -3,6 +3,7 @@ This is a Wallet App build on the [Moralis Platform](https://moralis.io/).
 [Live Demo](https://moralis-wallet.iakobinyi.com/)
 
 Dummy Dum Dum ....
+Dummy Dum Dum ....
 
 ------
 
